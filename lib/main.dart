@@ -20,7 +20,8 @@ class MyApp extends StatelessWidget {
       ),
       routes: {
         '/': (context) => const RandomWords(),
-        '/editar':(context) => const EditScreen()
+        '/editar':(context) => const EditScreen(),
+        '/adicionar': (context) => const AddScreen(),
       }
     );
   }
@@ -52,6 +53,12 @@ class _RandomWordsState extends State<RandomWords> {
               onPressed: _pushSaved,
               tooltip: 'Saved Suggestions',
             ),
+            IconButton(onPressed: () async {
+            final newWord = await Navigator.pushReplacementNamed(context, 'adicionar') as WordPair;
+            setState(() {
+              _suggestions._words.add(newWord);
+            });
+          }, icon: const Icon(Icons.add)),
             IconButton(
               onPressed: (() {
                 setState(() {
@@ -233,3 +240,44 @@ final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
     );  }
 }
 
+class AddScreen extends StatefulWidget {
+  const AddScreen({super.key});
+
+  @override
+  State<AddScreen> createState() => _AddScreenState();
+}
+
+class _AddScreenState extends State<AddScreen> {
+
+  @override
+  Widget build(BuildContext context) {
+    final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+    final word = args['word'];
+    String? newWord = '';
+    final controller = TextEditingController(text: word);
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Editar palavra"),
+      ),
+      body: Center(
+        child: Column(
+          children: [
+            TextFormField(
+              controller: controller,
+              onSaved: (value) {
+                newWord = value;
+              },
+            ),
+            ElevatedButton(onPressed: () {
+              final form = Form.of(context);
+              if(form.validate()){
+                form.save();
+                Navigator.pop(context, WordPair(newWord!, ''));
+              }
+            }, child: const Text('Confirmar'))
+          ],
+        )
+      ),
+    );
+  }
+}
